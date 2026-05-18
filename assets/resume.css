@@ -1,0 +1,161 @@
+/* Resume PDF styling — sidebar-on-LEFT layout, navy/gray palette mirroring the DOCX template. */
+
+/* === Colors (match generate-docx.js template) === */
+/* NAVY    #1F3A5F — primary: headers, name, company names                           */
+/* GREY    #555555 — secondary: dates, subtitle line                                  */
+/* LIGHT_BG #F2F4F7 — sidebar background fill                                          */
+/* DARK_TEXT #222222 — main body text                                                  */
+/* SIDE_TEXT #333333 — sidebar body text                                               */
+
+@page {
+  size: Letter;
+  margin: 0;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+
+body {
+  font-family: Calibri, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 10pt;
+  line-height: 1.35;
+  color: #222222;
+  background: white;
+}
+
+/* === 2-column grid: narrow sidebar LEFT, wide main RIGHT === */
+/* 2.29in + 4.71in = 7in content area inside 0.75in page margins (Letter 8.5in) */
+.resume-cols {
+  display: grid;
+  grid-template-columns: 2.29in 1fr;
+  min-height: 11in;
+  align-items: stretch;
+}
+
+.col-side {
+  background: #F2F4F7;
+  padding: 0.75in 0.22in 0.75in 0.5in;
+  font-size: 9pt;
+  color: #333333;
+}
+
+.col-main {
+  padding: 0.75in 0.5in 0.75in 0.28in;
+  color: #222222;
+}
+
+.col-side, .col-main { min-width: 0; }
+
+/* === Name (top of main column) === */
+.col-main > h1:first-child,
+.col-main h1 {
+  font-family: Calibri, "Helvetica Neue", sans-serif;
+  font-size: 22pt;
+  font-weight: 700;
+  color: #1F3A5F;
+  margin: 0 0 6px 0;
+  line-height: 1.1;
+  letter-spacing: 0.2px;
+}
+
+/* === Tagline (paragraph immediately after the name) === */
+.col-main h1 + p {
+  font-size: 11pt;
+  font-style: italic;
+  color: #555555;
+  margin: 0 0 16px 0;
+  padding-bottom: 6px;
+  border-bottom: 1pt solid #1F3A5F;
+  letter-spacing: 0.2px;
+}
+
+/* === Main column section headers (PROFESSIONAL SUMMARY, WORK EXPERIENCE) === */
+.col-main h2 {
+  font-size: 12pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #1F3A5F;
+  letter-spacing: 1.3px;
+  margin: 14px 0 8px 0;
+  padding-bottom: 3px;
+  border-bottom: 1pt solid #1F3A5F;
+}
+
+/* First section header in main column tighter against tagline */
+.col-main h1 + p + h2 {
+  margin-top: 8px;
+}
+
+/* === Sidebar section headers (CONTACT, CORE SKILLS, CERTIFICATIONS, EDUCATION) === */
+.col-side h2 {
+  font-size: 10pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #1F3A5F;
+  letter-spacing: 1.5px;
+  margin: 14px 0 6px 0;
+  padding-bottom: 2px;
+  border-bottom: 0.75pt solid #1F3A5F;
+}
+
+.col-side h2:first-child {
+  margin-top: 0;
+}
+
+/* === Job blocks (h3 in main column) === */
+.col-main h3 {
+  font-size: 11pt;
+  font-weight: 700;
+  margin: 10px 0 0 0;
+  color: #111111;
+}
+
+/* Dates line — paragraph immediately after job h3 */
+.col-main h3 + p {
+  font-size: 9pt;
+  font-style: italic;
+  color: #555555;
+  margin: 0 0 4px 0;
+}
+
+/* === Skill group labels (h3 in sidebar) === */
+.col-side h3 {
+  font-size: 9pt;
+  font-weight: 700;
+  color: #1F3A5F;
+  margin: 8px 0 2px 0;
+}
+
+/* === Lists === */
+ul {
+  margin: 2px 0 6px 0;
+  padding-left: 18px;
+}
+
+li { margin: 0 0 2px 0; }
+li > p { margin: 0; }
+
+.col-side ul {
+  padding-left: 14px;
+  margin: 1px 0 4px 0;
+}
+
+.col-side li {
+  margin: 0 0 1px 0;
+  line-height: 1.3;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+/* === Body paragraphs === */
+p { margin: 0 0 6px 0; }
+.col-main p { color: #222222; }
+.col-side p { color: #333333; }
+
+strong { font-weight: 600; }
+hr { display: none; }
+
+/* === Page break hints === */
+h2, h3 { page-break-after: avoid; break-after: avoid; }
+h3 + p, h3 + ul, h2 + p, h2 + ul { page-break-before: avoid; break-before: avoid; }
+li { page-break-inside: avoid; break-inside: avoid; }

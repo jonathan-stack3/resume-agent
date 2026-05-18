@@ -1,0 +1,18 @@
+master-resume.md
+job-description.md
+
+Desktop/
+Resume Outputs/
+
+*.pdf
+
+# Exclude generated output DOCX but keep assets/reference.docx
+Resume\ Outputs/*.docx
+Jonathan\ Johnson*.docx
+final-resume.docx
+_final-resume-flat.md
+_final-resume-2col.md
+_final-resume.html
+
+node_modules/
+.DS_Store
