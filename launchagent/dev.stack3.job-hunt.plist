@@ -8,6 +8,7 @@
     <key>ProgramArguments</key>
     <array>
         <string>/Users/stack3/.local/bin/claude</string>
+        <string>--dangerously-skip-permissions</string>
         <string>-p</string>
         <string>/job-hunt</string>
     </array>
