@@ -1,5 +1,5 @@
 ---
-description: Scan Gmail for Indeed/LinkedIn job postings, auto-run fit analysis, and generate tailored resumes for strong matches (7+/10).
+description: Scan Gmail for all unprocessed Indeed/LinkedIn job postings (no cap), auto-run fit analysis, and generate tailored resumes for strong matches (7+/10).
 argument-hint: no arguments needed — just run /job-hunt
 ---
 
@@ -19,7 +19,7 @@ Scan Gmail for unprocessed job alert emails, run each listing through the full t
 ## Rules
 
 - **Fit threshold**: auto-proceed to tailoring only if fit score is **7/10 or higher**. Skip anything lower.
-- **Cap**: process a maximum of **10 individual job listings** per run, regardless of how many emails are found.
+- **Cap**: none — process all unique job listings found across all unprocessed threads.
 - **Tracking label**: `Tailor/Processed` — apply this Gmail label to each thread after all its listings have been evaluated (pass or skip). Never re-process a labeled thread.
 - **No approval gate**: this workflow is fully automated. Do not stop to ask the user for approval between fit analysis and tailoring.
 - **Intermediate files are reused**: `01-fit-analysis.md`, `02-tailored-resume.md`, and `03-final-resume-review.md` get overwritten for each listing. Only the final `.pdf` and `.docx` files are uniquely named.
@@ -44,7 +44,7 @@ Use `mcp__claude_ai_Gmail__search_threads` with this query:
 (from:indeed.com OR from:linkedin.com) -label:Tailor/Processed
 ```
 
-Fetch up to 15 threads (you may not process all 10 listings from the first thread, so a small buffer helps).
+Fetch up to 50 threads per page. If more threads exist, paginate until all unprocessed threads are retrieved.
 
 If zero threads are returned: tell the user "No new job alert emails found. All threads are already labeled Tailor/Processed or no Indeed/LinkedIn emails exist." Stop.
 
@@ -57,8 +57,6 @@ For each thread (in order, newest first):
 2. Look at the most recent message in the thread.
 3. Apply the extraction rules from `04-gmail-agent.md` to pull out individual job listings (title, company, location, url).
 4. Add each listing to your working queue.
-
-Stop adding listings once the queue reaches 10 jobs.
 
 Keep track of which thread each listing came from — you need this for labeling in Step 7.
 
@@ -145,7 +143,7 @@ On success: record the output paths in your processing log:
 
 ## Step 5 — Repeat for all listings
 
-Continue through Step 4 for each listing in the queue until all are processed or the 10-listing cap is hit.
+Continue through Step 4 for each listing in the queue until all are processed.
 
 ## Step 6 — Show a live status line per listing
 
