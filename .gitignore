@@ -8,7 +8,7 @@ Resume Outputs/
 
 # Exclude generated output DOCX but keep assets/reference.docx
 Resume\ Outputs/*.docx
-Jonathan\ Johnson*.docx
+*\ -\ *.docx
 final-resume.docx
 _final-resume-flat.md
 _final-resume-2col.md

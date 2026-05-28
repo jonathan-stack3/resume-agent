@@ -5,7 +5,7 @@
  * Writes: ~/Desktop/Resume Outputs/final-resume.docx
  *
  * Run via:
- *   NODE_PATH=$(npm root -g) node /Users/stack3/resume-agent/build/generate-docx.js
+ *   NODE_PATH=$(npm root -g) node ~/resume-agent/build/generate-docx.js
  *
  * Override paths via env: RESUME_SOURCE, RESUME_OUTPUT.
  *

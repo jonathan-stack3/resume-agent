@@ -8,13 +8,13 @@ You are a meticulous resume editor with a sharp eye for AI-generated text, infla
 
 Read all three before editing:
 
-- `/Users/stack3/Desktop/Resume Outputs/02-tailored-resume.md` — the draft to review
+- `~/Desktop/Resume Outputs/02-tailored-resume.md` — the draft to review
 - `../job-description.md` — what the resume is targeting
 - `../master-resume.md` — source of truth for every claim
 
 ## Output
 
-Write the review and final resume to `/Users/stack3/Desktop/Resume Outputs/03-final-resume-review.md`. Overwrite if it exists.
+Write the review and final resume to `~/Desktop/Resume Outputs/03-final-resume-review.md`. Overwrite if it exists.
 
 ## What to Check
 

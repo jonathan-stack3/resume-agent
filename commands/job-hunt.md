@@ -9,12 +9,12 @@ Scan Gmail for unprocessed job alert emails, run each listing through the full t
 
 ## Paths
 
-- Workflow root: `/Users/stack3/resume-agent/`
-- Master resume: `/Users/stack3/resume-agent/master-resume.md`
-- Job description scratch file: `/Users/stack3/resume-agent/job-description.md`
-- Outputs folder: `/Users/stack3/Desktop/Resume Outputs/`
-- Agent prompts: `/Users/stack3/resume-agent/prompts/`
-- Build script: `/Users/stack3/resume-agent/build/build-resume.sh`
+- Workflow root: `~/resume-agent/`
+- Master resume: `~/resume-agent/master-resume.md`
+- Job description scratch file: `~/resume-agent/job-description.md`
+- Outputs folder: `~/Desktop/Resume Outputs/`
+- Agent prompts: `~/resume-agent/prompts/`
+- Build script: `~/resume-agent/build/build-resume.sh`
 
 ## Rules
 
@@ -50,7 +50,7 @@ If zero threads are returned: tell the user "No new job alert emails found. All 
 
 ## Step 3 — Extract job listings from each thread
 
-Read `/Users/stack3/resume-agent/prompts/04-gmail-agent.md` for extraction rules.
+Read `~/resume-agent/prompts/04-gmail-agent.md` for extraction rules.
 
 For each thread (in order, newest first):
 1. Use `mcp__claude_ai_Gmail__get_thread` to retrieve the full thread content.
@@ -72,7 +72,7 @@ Use WebFetch on the listing's URL.
 - If the page is a login wall (LinkedIn common) or returns an error: fall back to the description text extracted from the email body.
 - Either way, note the source ("fetched from URL" or "from email body") in your processing log.
 
-Write the job description to `/Users/stack3/resume-agent/job-description.md` using this format:
+Write the job description to `~/resume-agent/job-description.md` using this format:
 
 ```markdown
 # Job Description
@@ -90,11 +90,11 @@ Write the job description to `/Users/stack3/resume-agent/job-description.md` usi
 ### 4b — Run fit analysis
 
 Read:
-1. `/Users/stack3/resume-agent/prompts/01-fit-agent.md`
-2. `/Users/stack3/resume-agent/master-resume.md`
-3. `/Users/stack3/resume-agent/job-description.md`
+1. `~/resume-agent/prompts/01-fit-agent.md`
+2. `~/resume-agent/master-resume.md`
+3. `~/resume-agent/job-description.md`
 
-Follow the fit agent prompt's instructions exactly. Write the full analysis to `/Users/stack3/Desktop/Resume Outputs/01-fit-analysis.md`.
+Follow the fit agent prompt's instructions exactly. Write the full analysis to `~/Desktop/Resume Outputs/01-fit-analysis.md`.
 
 Extract the fit score (X/10) from the analysis you just wrote.
 
@@ -107,22 +107,22 @@ Extract the fit score (X/10) from the analysis you just wrote.
 ### 4d — Run tailoring agent
 
 Read:
-1. `/Users/stack3/resume-agent/prompts/02-tailoring-agent.md`
-2. `/Users/stack3/resume-agent/master-resume.md`
-3. `/Users/stack3/resume-agent/job-description.md`
-4. `/Users/stack3/Desktop/Resume Outputs/01-fit-analysis.md`
+1. `~/resume-agent/prompts/02-tailoring-agent.md`
+2. `~/resume-agent/master-resume.md`
+3. `~/resume-agent/job-description.md`
+4. `~/Desktop/Resume Outputs/01-fit-analysis.md`
 
-Follow the tailoring prompt's instructions exactly. Write the tailored resume to `/Users/stack3/Desktop/Resume Outputs/02-tailored-resume.md`.
+Follow the tailoring prompt's instructions exactly. Write the tailored resume to `~/Desktop/Resume Outputs/02-tailored-resume.md`.
 
 ### 4e — Run proofread agent
 
 Read:
-1. `/Users/stack3/resume-agent/prompts/03-proofread-agent.md`
-2. `/Users/stack3/Desktop/Resume Outputs/02-tailored-resume.md`
-3. `/Users/stack3/resume-agent/job-description.md`
-4. `/Users/stack3/resume-agent/master-resume.md`
+1. `~/resume-agent/prompts/03-proofread-agent.md`
+2. `~/Desktop/Resume Outputs/02-tailored-resume.md`
+3. `~/resume-agent/job-description.md`
+4. `~/resume-agent/master-resume.md`
 
-Follow the proofread prompt's instructions exactly. Write the review + final polished resume to `/Users/stack3/Desktop/Resume Outputs/03-final-resume-review.md`.
+Follow the proofread prompt's instructions exactly. Write the review + final polished resume to `~/Desktop/Resume Outputs/03-final-resume-review.md`.
 
 ### 4f — Build the resume files
 
@@ -132,7 +132,7 @@ Strip any characters that are invalid in filenames ( `/`, `:`, `"`, `?`, `*` ) �
 Run the build script via Bash with the `JOB_NAME` env var set:
 
 ```bash
-JOB_NAME="Jonathan Johnson - [title] - [company]" /Users/stack3/resume-agent/build/build-resume.sh
+JOB_NAME="Jonathan Johnson - [title] - [company]" ~/resume-agent/build/build-resume.sh
 ```
 
 If the build script exits with an error: log the error for this listing, mark it FAILED, and move on to the next listing. Do not stop the entire run.

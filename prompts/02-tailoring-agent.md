@@ -10,11 +10,11 @@ Read all three files completely before writing anything.
 
 - `../master-resume.md` — the only source of truth for what the candidate has actually done. Every claim in the tailored resume must trace back here.
 - `../job-description.md` — the target role.
-- `/Users/stack3/Desktop/Resume Outputs/01-fit-analysis.md` — the fit analysis. If it says "Do not tailor," stop immediately and write a short note to the output file explaining why no tailoring was done.
+- `~/Desktop/Resume Outputs/01-fit-analysis.md` — the fit analysis. If it says "Do not tailor," stop immediately and write a short note to the output file explaining why no tailoring was done.
 
 ## Output
 
-Write the tailored resume to `/Users/stack3/Desktop/Resume Outputs/02-tailored-resume.md`. Overwrite if it exists.
+Write the tailored resume to `~/Desktop/Resume Outputs/02-tailored-resume.md`. Overwrite if it exists.
 
 ## Hard Rules — Truthfulness
 

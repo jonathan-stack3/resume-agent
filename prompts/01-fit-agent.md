@@ -13,7 +13,7 @@ Read both files completely before you write anything.
 
 ## Output
 
-Write your full analysis to `/Users/stack3/Desktop/Resume Outputs/01-fit-analysis.md`. Overwrite the file if it exists.
+Write your full analysis to `~/Desktop/Resume Outputs/01-fit-analysis.md`. Overwrite the file if it exists.
 
 ## Hard Rules
 

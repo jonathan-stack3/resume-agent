@@ -16,7 +16,18 @@ OUT_DOCX="${RESUME_OUTPUT:-$OUT_DIR/${_STEM}.docx}"
 OUT_PDF="$OUT_DIR/${_STEM}.pdf"
 CSS="$ROOT/assets/resume.css"
 REF_DOCX="$ROOT/assets/reference.docx"
-CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+# Locate Chrome — macOS app bundle first, then common Linux locations
+if [[ -x "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" ]]; then
+  CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+elif command -v google-chrome &>/dev/null; then
+  CHROME="google-chrome"
+elif command -v chromium-browser &>/dev/null; then
+  CHROME="chromium-browser"
+elif command -v chromium &>/dev/null; then
+  CHROME="chromium"
+else
+  CHROME=""
+fi
 
 [[ -d "$OUT_DIR" ]] || mkdir -p "$OUT_DIR"
 
@@ -39,7 +50,12 @@ if [[ ! -s "$WORK_MD_FLAT" ]]; then
 fi
 
 # Escape (NNN) phone-number parens so pandoc doesn't parse them as list markers
-sed -E -i '' 's/\(([0-9]{3})\)/\\(\1\\)/g' "$WORK_MD_FLAT"
+# sed -i syntax differs: macOS requires '' after -i, GNU sed does not
+if sed --version 2>/dev/null | grep -q GNU; then
+  sed -E -i 's/\(([0-9]{3})\)/\\(\1\\)/g' "$WORK_MD_FLAT"
+else
+  sed -E -i '' 's/\(([0-9]{3})\)/\\(\1\\)/g' "$WORK_MD_FLAT"
+fi
 
 # ---- Step 2: build the 2-column markdown for HTML/PDF ----
 # Split the flat markdown into header / left / right and wrap with HTML divs.
@@ -91,8 +107,8 @@ pandoc "$WORK_MD_2COL" \
   -o "$WORK_HTML"
 
 # ---- Step 5: PDF via Chrome headless ----
-if [[ ! -x "$CHROME" ]]; then
-  echo "error: Chrome not found at $CHROME" >&2
+if [[ -z "$CHROME" ]]; then
+  echo "error: Chrome not found. Install Google Chrome or Chromium and ensure it's in PATH." >&2
   exit 1
 fi
 
