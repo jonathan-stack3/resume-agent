@@ -1,11 +1,11 @@
 ---
-description: Scan Gmail for all unprocessed Indeed/LinkedIn job postings (no cap), auto-run fit analysis, and generate tailored resumes for strong matches (7+/10).
+description: Scan Gmail for all unprocessed Indeed/LinkedIn job postings (no cap), auto-run fit analysis, generate tailored resumes for strong matches (7+/10), and log everything to Notion.
 argument-hint: no arguments needed — just run /job-hunt
 ---
 
 # /job-hunt — Automated Job Scanning Workflow
 
-Scan Gmail for unprocessed job alert emails, run each listing through the full tailor pipeline, and save named resume files for every strong match.
+Scan Gmail for unprocessed job alert emails, run each listing through the full tailor pipeline, save named resume files for every strong match, and log all results to the Notion Job Applications tracker.
 
 ## Paths
 
@@ -15,6 +15,13 @@ Scan Gmail for unprocessed job alert emails, run each listing through the full t
 - Outputs folder: `~/Desktop/Resume Outputs/`
 - Agent prompts: `~/resume-agent/prompts/`
 - Build script: `~/resume-agent/build/build-resume.sh`
+
+## Notion
+
+- Database: Job Applications
+- Data source ID: `b6e07907-bd13-4b3a-8a7a-916a4b97518b`
+- Log every listing that scores 7+ (status: "Resume Ready") after a successful build
+- Do not log skipped listings (score < 7)
 
 ## Rules
 
@@ -56,7 +63,8 @@ For each thread (in order, newest first):
 1. Use `mcp__claude_ai_Gmail__get_thread` to retrieve the full thread content.
 2. Look at the most recent message in the thread.
 3. Apply the extraction rules from `04-gmail-agent.md` to pull out individual job listings (title, company, location, url).
-4. Add each listing to your working queue.
+4. Also note the email sender domain (`indeed.com` or `linkedin.com`) — record this as the Source for each listing.
+5. Add each listing to your working queue.
 
 Keep track of which thread each listing came from — you need this for labeling in Step 7.
 
@@ -96,11 +104,11 @@ Read:
 
 Follow the fit agent prompt's instructions exactly. Write the full analysis to `~/Desktop/Resume Outputs/01-fit-analysis.md`.
 
-Extract the fit score (X/10) from the analysis you just wrote.
+Extract the fit score (X/10) from the analysis you just wrote. Store the numeric value (e.g. `8` not `8/10`).
 
 ### 4c — Branch on score
 
-**If score < 7**: log this listing as SKIPPED with the score and a one-line reason. Move to the next listing.
+**If score < 7**: log this listing as SKIPPED with the score and a one-line reason. Move to the next listing. Do NOT create a Notion entry.
 
 **If score >= 7**: continue to 4d.
 
@@ -135,11 +143,30 @@ Run the build script via Bash with the `JOB_NAME` env var set:
 JOB_NAME="Jonathan Johnson - [title] - [company]" ~/resume-agent/build/build-resume.sh
 ```
 
-If the build script exits with an error: log the error for this listing, mark it FAILED, and move on to the next listing. Do not stop the entire run.
+If the build script exits with an error: log the error for this listing, mark it FAILED, and move on to the next listing. Do not stop the entire run. Do NOT create a Notion entry for failed builds.
 
 On success: record the output paths in your processing log:
 - `~/Desktop/Resume Outputs/Jonathan Johnson - [title] - [company].pdf`
 - `~/Desktop/Resume Outputs/Jonathan Johnson - [title] - [company].docx`
+
+### 4g — Log to Notion
+
+After a successful build, create a new page in the Notion Job Applications database using `mcp__claude_ai_Notion__notion-create-pages`:
+
+- Parent: `{"type": "data_source_id", "data_source_id": "b6e07907-bd13-4b3a-8a7a-916a4b97518b"}`
+- Properties:
+  - `Position`: job title
+  - `Company`: company name
+  - `Status`: `"Resume Ready"`
+  - `Fit Score`: numeric score (e.g. `8`)
+  - `Source`: `"LinkedIn"` if email was from linkedin.com, `"Indeed"` if from indeed.com, otherwise `"Other"`
+  - `Location`: location from the listing
+  - `Job URL`: the listing URL (empty string if none)
+  - `date:Applied Date:start`: today's date in YYYY-MM-DD format
+  - `date:Last Updated:start`: today's date in YYYY-MM-DD format
+  - `Interview Stage`: `"None"`
+
+If the Notion create call fails: log the error but do not fail the listing — the resume was already built successfully.
 
 ## Step 5 — Repeat for all listings
 
@@ -150,7 +177,7 @@ Continue through Step 4 for each listing in the queue until all are processed.
 After processing each listing (pass, skip, or fail), output a brief one-line status to the chat so the user can see progress:
 
 ```
-[✓ TAILORED] Senior Program Manager — Amazon | 8/10
+[✓ TAILORED] Senior Program Manager — Amazon | 8/10 → Notion ✓
 [— SKIPPED ] Customer Support Rep — Telecom Co | 5/10 (below threshold)
 [✗ FAILED  ] Operations Director — Acme Corp | 7/10 (build error: ...)
 ```
@@ -167,14 +194,14 @@ Display a summary table:
 
 ```
 Job Hunt Complete — [date]
-──────────────────────────────────────────────────────
+──────────────────────────────────────────────────────────────
  #  Title                        Company        Score  Result
-──────────────────────────────────────────────────────
- 1  Senior Program Manager       Amazon          8/10  ✓ Resume saved
+──────────────────────────────────────────────────────────────
+ 1  Senior Program Manager       Amazon          8/10  ✓ Resume saved → Notion
  2  Customer Support Rep         Telecom Co      5/10  — Skipped
  ...
-──────────────────────────────────────────────────────
-Resumes generated: X  |  Skipped: Y  |  Emails labeled: Z
+──────────────────────────────────────────────────────────────
+Resumes generated: X  |  Skipped: Y  |  Notion entries: Z  |  Emails labeled: W
 ```
 
 Then list the full paths of all generated resume files so the user can find them quickly.
@@ -186,3 +213,4 @@ Then list the full paths of all generated resume files so the user can find them
 - Never skip the per-listing score check — no resume is built below 7/10.
 - If a listing errors at any step, log it and move on — do not abort the entire run.
 - Do not ask the user for confirmation or approval at any point during the run.
+- Always attempt the Notion log after a successful build — a Notion failure must never abort the run.
