@@ -60,9 +60,30 @@ For each thread (in order, newest first):
 
 Keep track of which thread each listing came from — you need this for labeling in Step 7.
 
+### 3a — Dedup the queue (same run)
+
+The same listing often shows up in multiple emails (e.g. both an Indeed and a LinkedIn alert, or a re-sent digest). Before processing anything, collapse the queue:
+
+1. Normalize each listing's title and company: lowercase, trim whitespace, strip punctuation.
+2. A listing is a duplicate of an earlier one in the queue if either matches:
+   - Exact URL match, OR
+   - Normalized title + normalized company match
+3. Keep only the first occurrence of each duplicate group. Drop the rest from the queue (no need to log these individually — just note the count removed).
+
 ## Step 4 — Process each job listing
 
-For each listing in the queue, execute the following sub-steps in order.
+For each listing remaining in the queue, execute the following sub-steps in order.
+
+### 4a-pre — Cross-run dedup check
+
+Check `~/resume-agent/processed-listings.log` (create it if it doesn't exist — empty file is fine) for a prior entry matching this listing:
+
+- Exact URL match, OR
+- Normalized title + normalized company match (same normalization as Step 3a)
+
+**If a match is found**: skip this listing — do not run fit analysis or any downstream step. Log it as `⏭ DUPLICATE` with a reference to the prior date/score from the log entry. Append a new line to `processed-listings.log` for this occurrence too (so repeated re-sends are visible in the trail), then move to the next listing.
+
+**If no match**: continue to 4a.
 
 ### 4a — Fetch the full job description
 
@@ -141,18 +162,29 @@ On success: record the output paths in your processing log:
 - `~/Desktop/Resume Outputs/Jonathan Johnson - [title] - [company].pdf`
 - `~/Desktop/Resume Outputs/Jonathan Johnson - [title] - [company].docx`
 
+### 4g — Append to the dedup log
+
+Regardless of outcome (tailored, skipped, or failed), append one line to `~/resume-agent/processed-listings.log`:
+
+```
+[date] | [title] | [company] | [url] | [score]/10 | [result: TAILORED / SKIPPED / FAILED]
+```
+
+This is what Step 4a-pre checks on future runs — every listing must get a line here exactly once per occurrence.
+
 ## Step 5 — Repeat for all listings
 
 Continue through Step 4 for each listing in the queue until all are processed.
 
 ## Step 6 — Show a live status line per listing
 
-After processing each listing (pass, skip, or fail), output a brief one-line status to the chat so the user can see progress:
+After processing each listing (pass, skip, fail, or duplicate), output a brief one-line status to the chat so the user can see progress:
 
 ```
-[✓ TAILORED] Senior Program Manager — Amazon | 8/10
-[— SKIPPED ] Customer Support Rep — Telecom Co | 5/10 (below threshold)
-[✗ FAILED  ] Operations Director — Acme Corp | 7/10 (build error: ...)
+[✓ TAILORED ] Senior Program Manager — Amazon | 8/10
+[— SKIPPED  ] Customer Support Rep — Telecom Co | 5/10 (below threshold)
+[✗ FAILED   ] Operations Director — Acme Corp | 7/10 (build error: ...)
+[⏭ DUPLICATE] Enablement Manager — Concentrix | already processed 2026-06-15, 8/10
 ```
 
 ## Step 7 — Apply the tracking label
@@ -172,9 +204,10 @@ Job Hunt Complete — [date]
 ──────────────────────────────────────────────────────
  1  Senior Program Manager       Amazon          8/10  ✓ Resume saved
  2  Customer Support Rep         Telecom Co      5/10  — Skipped
+ 3  Enablement Manager           Concentrix      8/10  ⏭ Duplicate (first seen 2026-06-15)
  ...
 ──────────────────────────────────────────────────────
-Resumes generated: X  |  Skipped: Y  |  Emails labeled: Z
+Resumes generated: X  |  Skipped: Y  |  Duplicates: D  |  In-run dupes removed: Q  |  Emails labeled: Z
 ```
 
 Then list the full paths of all generated resume files so the user can find them quickly.
@@ -185,4 +218,6 @@ Then list the full paths of all generated resume files so the user can find them
 - Never process a thread already labeled `Tailor/Processed`.
 - Never skip the per-listing score check — no resume is built below 7/10.
 - If a listing errors at any step, log it and move on — do not abort the entire run.
+- Never re-run fit analysis or tailoring for a listing already present in `processed-listings.log` (by URL or by normalized title+company) — log it as a duplicate instead.
+- Every listing, including duplicates, gets exactly one line appended to `processed-listings.log` per occurrence.
 - Do not ask the user for confirmation or approval at any point during the run.

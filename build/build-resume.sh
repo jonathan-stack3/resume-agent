@@ -4,6 +4,9 @@
 
 set -euo pipefail
 
+# Ensure user-local binaries (pandoc, npm globals) are findable regardless of how this script is invoked
+export PATH="$HOME/.local/bin:$HOME/.npm-global/bin:$PATH"
+
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT_DIR="$HOME/Desktop/Resume Outputs"
 SOURCE="${RESUME_SOURCE:-$OUT_DIR/03-final-resume-review.md}"
@@ -25,6 +28,10 @@ elif command -v chromium-browser &>/dev/null; then
   CHROME="chromium-browser"
 elif command -v chromium &>/dev/null; then
   CHROME="chromium"
+elif command -v brave-browser &>/dev/null; then
+  CHROME="brave-browser"
+elif command -v brave &>/dev/null; then
+  CHROME="brave"
 else
   CHROME=""
 fi

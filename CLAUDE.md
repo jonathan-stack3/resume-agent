@@ -10,6 +10,7 @@ This repo is a multi-agent Claude Code workflow for resume tailoring and automat
 - **Agent prompts:** `~/resume-agent/prompts/`
 - **Build script:** `~/resume-agent/build/build-resume.sh`
 - **Outputs folder:** `~/Desktop/Resume Outputs/` — where PDFs and DOCX files land
+- **Dedup log:** `~/resume-agent/processed-listings.log` — append-only record of every listing `/job-hunt` has ever evaluated (by URL and normalized title+company), used to skip duplicates across runs
 
 ## Workflow Overview
 

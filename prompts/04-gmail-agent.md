@@ -18,24 +18,26 @@ For each job found in the email, extract:
 - Ignore unsubscribe, account, and "Browse jobs" links
 
 **Indeed URL repair (QP encoding bug):**
-Indeed job alert emails use Quoted-Printable encoding. The `=` separator in `?jk=VALUE` gets consumed by the QP decoder along with the first two hex chars of the job key, producing a garbled character. For example, `?jk=3c211ef877dac06a` becomes `?jk<211ef877dac06a` in the extracted email text.
+Indeed job alert emails are Quoted-Printable (QP) encoded. If the Gmail tool hands back raw QP text instead of cleanly decoded text, the `=` separator in `?jk=VALUE` (and other `=XX` hex escapes) can render as garbled characters or get split across a soft line break — e.g. `?jk=3c211ef877dac06a` showing up as `?jk<211ef877dac06a`.
 
-When you see a URL where `jk` is followed immediately by a non-`=` character, repair it:
-1. Take the character immediately after `jk` (e.g. `<`, `\`, `M`, `Y`, `w`)
-2. Convert it to its two-digit hex value (e.g. `<` → `3c`, `M` → `4d`, `w` → `77`)
-3. Reconstruct the URL as `?jk=HEX + remaining_chars`
+**Do not repair this by manually computing hex values for garbled characters by eye** — that's error-prone and only patches the symptom. Instead, decode the text deterministically with Python:
 
-Example repairs:
-- `?jk<211ef877dac06a` → `?jk=3c211ef877dac06a`
-- `?jkM8157ac943ed3da` → `?jk=4d8157ac943ed3da`
-- `?jkYbaa37f3d50a8bb` → `?jk=59baa37f3d50a8bb`
-- `?jkw1cd8c674e67c81` → `?jk=771cd8c674e67c81`
+1. Copy the raw line(s) containing the mangled URL (preserve any literal `=` and line breaks exactly as they appear).
+2. Run it through Bash:
+   ```bash
+   python3 -c "
+import quopri
+raw = '''<paste the raw line(s) here>'''
+print(quopri.decodestring(raw.encode()).decode(errors='replace'))
+"
+   ```
+3. Use the corrected URL from the decoded output.
 
-Then fetch using `https://www.indeed.com/viewjob?jk=REPAIRED_KEY`.
+If an entire email body looks QP-mangled (not just one URL — look for stray `=` line continuations throughout), it's faster to decode the whole message body once, before extracting any listings, rather than patching URLs one at a time.
 
-If the first char after `jk` is a hex digit (0-9, a-f), the key may be intact but truncated by a QP soft line break. Try the key as-is first. If that 404s, prepend the hex value of that digit (e.g. `4` → `34`) and try again.
+Fetch using `https://www.indeed.com/viewjob?jk=DECODED_KEY`.
 
-If both attempts 404, the job likely expired — fall back to searching by title and company (see Fetching the full description below).
+If the decoded URL still 404s, the job likely expired — fall back to searching by title and company (see Fetching the full description below).
 
 **LinkedIn emails:**
 - Links look like `https://www.linkedin.com/jobs/view/...` or `https://www.linkedin.com/comm/jobs/view/...`
@@ -66,4 +68,4 @@ Some email formats display: `[Title] at [Company]` or `[Title] — [Company]`. S
 Skip any listing where:
 - No URL is present and no description text is available
 - The "job" is actually a promotional listing (e.g., "Sponsored", "Promoted") with no real description
-- The title is clearly not a management/operations/program management role (these are not a match for this resume)
+- The title is clearly outside ALL of these scopes: operations, program/project management, enablement, training & development, coaching/performance management, workforce management, or BPO/call-center/contact-center/telecom/ISP leadership (e.g., "Registered Nurse," "Software Engineer," "Truck Driver," "Graphic Designer") — when in doubt, don't skip; let the fit agent score it instead.
